@@ -198,7 +198,7 @@ Nota: `.env` é gitignored e não entra no commit — por isso o Step 6 existe.
 
 **Interfaces:**
 - Consumes: nada.
-- Produces: `routes/api.php` fica vazio de rotas, pronto para receber `apiResource('usuarios', ...)` na Task 4.
+- Produces: `routes/api.php` fica vazio de rotas, pronto para receber `apiResource('usuarios', ...)` na Task 3.
 
 - [ ] **Step 1: Apagar os três arquivos**
 
@@ -247,9 +247,9 @@ git commit -m "chore: remove o CRUD de exemplo Product"
 
 ---
 
-### Task 3: `usuarios` substitui `users`
+### Task 3: Entidade `usuarios` completa (substitui `users`)
 
-A tabela `users` do esqueleto e a `usuarios` do DDL são a mesma entidade. Esta task troca uma pela outra num único passo, para o projeto nunca ficar num estado onde `config/auth.php` aponta para uma classe inexistente.
+A tabela `users` do esqueleto e a `usuarios` do DDL são a mesma entidade. Esta task troca uma pela outra e entrega o recurso inteiro — migration, model, factory, controller, rotas e testes — **num único commit**, para o projeto nunca ficar num estado onde `config/auth.php` aponta para uma classe inexistente e para o histórico ter uma entidade de domínio completa por commit.
 
 O `Usuario` estende `Authenticatable` (deixando Sanctum plug-and-play numa fase futura), com dois ajustes: a coluna de senha se chama `senha_hash`, não `password`, e a tabela não tem `remember_token`.
 
@@ -260,16 +260,22 @@ O `Usuario` estende `Authenticatable` (deixando Sanctum plug-and-play numa fase 
 - Create: `database/migrations/2026_08_19_000001_create_usuarios_table.php`
 - Create: `app/Models/Usuario.php`
 - Create: `database/factories/UsuarioFactory.php`
+- Create: `app/Http/Controllers/UsuarioController.php`
 - Modify: `config/auth.php:3` e `config/auth.php:67`
 - Modify: `database/seeders/DatabaseSeeder.php`
+- Modify: `routes/api.php`
 - Test: `tests/Feature/UsuarioModelTest.php`
+- Test: `tests/Feature/UsuarioApiTest.php`
 
 **Interfaces:**
 - Consumes: nada.
 - Produces:
-  - `App\Models\Usuario` — tabela `usuarios`; `$fillable` = `nome_usuario`, `email`, `senha_hash`, `idade`, `avatar_url`, `bio`, `nivel`; `$hidden` = `senha_hash`; cast `senha_hash => 'hashed'` (atribuir texto puro grava hash); `getAuthPassword(): string`.
+  - `App\Models\Usuario` — tabela `usuarios`; `$fillable` = `nome_usuario`, `email`, `senha_hash`, `idade`, `avatar_url`, `bio`, `nivel`; `$hidden` = `senha_hash`; `$attributes = ['nivel' => 1]`; cast `senha_hash => 'hashed'` (atribuir texto puro grava hash); `getAuthPassword(): string`.
   - `Database\Factories\UsuarioFactory` — `Usuario::factory()` produz usuário válido com senha `'senha-secreta'`.
-  - A Task 4 consome `Usuario`; as Fases 2+ referenciam `usuarios.id` nas FKs.
+  - As rotas `usuarios.index|store|show|update|destroy` sob `/api/usuarios`. O endpoint aceita o campo de entrada **`senha`** (texto puro), que o controller grava na coluna `senha_hash`.
+  - As Fases 2+ referenciam `usuarios.id` nas FKs.
+
+**Commit:** um só, no Step 20. Nenhum step intermediário commita.
 
 - [ ] **Step 1: Escrever o teste que falha**
 
@@ -473,6 +479,15 @@ class Usuario extends Authenticatable
         'senha_hash',
     ];
 
+    /**
+     * Espelha o default da migration. Sem isto, um POST que nao envia "nivel"
+     * devolveria um JSON sem a chave: o default e do banco e so apareceria
+     * apos um refresh().
+     */
+    protected $attributes = [
+        'nivel' => 1,
+    ];
+
     protected function casts(): array
     {
         return [
@@ -589,27 +604,11 @@ Run: `php artisan test`
 
 Expected: PASS, 12 testes.
 
-- [ ] **Step 13: Commit**
+Ainda **sem commit**: a entidade `usuarios` só entra no histórico quando
+estiver completa. Os steps seguintes fecham a parte de API — controller, rota
+e testes de endpoint — e o Step 20 commita a entidade inteira de uma vez.
 
-```bash
-git add -A
-git commit -m "feat: substitui a tabela users pela entidade usuarios do dominio"
-```
-
----
-
-### Task 4: CRUD REST de `usuarios`
-
-**Files:**
-- Create: `app/Http/Controllers/UsuarioController.php`
-- Modify: `routes/api.php`
-- Test: `tests/Feature/UsuarioApiTest.php`
-
-**Interfaces:**
-- Consumes: `App\Models\Usuario` e `Database\Factories\UsuarioFactory` (Task 3).
-- Produces: as rotas `usuarios.index|store|show|update|destroy` sob `/api/usuarios`. O endpoint aceita o campo de entrada **`senha`** (texto puro), que o controller grava na coluna `senha_hash`. As Tasks 5 e 6 replicam a estrutura deste controller.
-
-- [ ] **Step 1: Escrever o teste que falha**
+- [ ] **Step 13: Escrever o teste de API que falha**
 
 Criar `tests/Feature/UsuarioApiTest.php`:
 
@@ -755,17 +754,17 @@ class UsuarioApiTest extends TestCase
 }
 ```
 
-- [ ] **Step 2: Rodar o teste e confirmar que falha**
+- [ ] **Step 14: Rodar o teste e confirmar que falha**
 
 Run: `php artisan test --filter=UsuarioApiTest`
 
 Expected: FAIL. As rotas não existem, então tudo retorna 404 em vez dos status esperados.
 
-- [ ] **Step 3: Gerar o controller**
+- [ ] **Step 15: Gerar o controller**
 
 Run: `php artisan make:controller UsuarioController --api`
 
-- [ ] **Step 4: Implementar o controller**
+- [ ] **Step 16: Implementar o controller**
 
 Substituir todo o conteúdo de `app/Http/Controllers/UsuarioController.php` por:
 
@@ -857,7 +856,7 @@ class UsuarioController extends Controller
 }
 ```
 
-- [ ] **Step 5: Registrar a rota**
+- [ ] **Step 17: Registrar a rota**
 
 Substituir todo o conteúdo de `routes/api.php` por:
 
@@ -871,30 +870,30 @@ use Illuminate\Support\Facades\Route;
 Route::apiResource('usuarios', UsuarioController::class);
 ```
 
-- [ ] **Step 6: Rodar o teste e confirmar que passa**
+- [ ] **Step 18: Rodar o teste e confirmar que passa**
 
 Run: `php artisan test --filter=UsuarioApiTest`
 
 Expected: PASS, 13 testes.
 
-- [ ] **Step 7: Conferir as rotas geradas**
+- [ ] **Step 19: Conferir as rotas geradas**
 
 Run: `php artisan route:list --path=api`
 
 Expected: exatamente 5 linhas — `GET api/usuarios`, `POST api/usuarios`, `GET api/usuarios/{usuario}`, `PUT|PATCH api/usuarios/{usuario}`, `DELETE api/usuarios/{usuario}`.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 20: Commit**
 
 ```bash
 git add -A
-git commit -m "feat: CRUD REST de usuarios"
+git commit -m "feat: entidade usuarios completa (migration, model, API REST)"
 ```
 
 ---
 
-### Task 5: CRUD REST de `jogos`
+### Task 4: CRUD REST de `jogos`
 
-Mesma estrutura da Task 4, sem o tratamento de senha. `data_lancamento` usa o cast `date:Y-m-d` para o JSON sair como `"2020-01-01"` em vez de um datetime ISO completo.
+Mesma estrutura da Task 3, sem o tratamento de senha. `data_lancamento` usa o cast `date:Y-m-d` para o JSON sair como `"2020-01-01"` em vez de um datetime ISO completo.
 
 **Files:**
 - Create: `database/migrations/2026_08_19_000002_create_jogos_table.php`
@@ -905,7 +904,7 @@ Mesma estrutura da Task 4, sem o tratamento de senha. `data_lancamento` usa o ca
 - Test: `tests/Feature/JogoApiTest.php`
 
 **Interfaces:**
-- Consumes: nada da Task 4 (entidade independente).
+- Consumes: nada da Task 3 (entidade independente).
 - Produces: `App\Models\Jogo` (tabela `jogos`), `Database\Factories\JogoFactory`, e as rotas `jogos.*` sob `/api/jogos`. As Fases 2 e 3 referenciam `jogos.id` nas FKs.
 
 - [ ] **Step 1: Escrever o teste que falha**
@@ -1247,7 +1246,7 @@ git commit -m "feat: CRUD REST de jogos"
 
 ---
 
-### Task 6: CRUD REST de `plataformas` e fechamento da Fase 1
+### Task 5: CRUD REST de `plataformas` e fechamento da Fase 1
 
 `plataformas` é a entidade mais simples do schema — só `id` e `nome`. No DDL ela não tem timestamp; ganha `criado_em`/`atualizado_em` por consistência com as demais.
 
@@ -1604,7 +1603,18 @@ git commit -m "feat: CRUD REST de plataformas e documentacao da Fase 1"
 - 6 migrations, 3 models de domínio, 3 controllers de API, 3 factories.
 - 15 rotas sob `/api`, cobertas por 46 testes verdes.
 - Banco alternável entre SQLite e MySQL por uma linha do `.env`.
-- 8 commits no total (2 já existentes + 6 deste plano).
+- 5 commits deste plano, um por unidade completa:
+
+| Commit | Conteúdo |
+|---|---|
+| Task 1 | infraestrutura — toggle SQLite/MySQL |
+| Task 2 | remoção do domínio `Product` |
+| Task 3 | entidade `usuarios` completa |
+| Task 4 | entidade `jogos` completa |
+| Task 5 | entidade `plataformas` completa + README |
+
+Cada entidade de domínio entra no histórico num único commit, com migration,
+model, factory, controller, rotas e testes juntos — nunca pela metade.
 
 ## Próximo passo (fora deste plano)
 
