@@ -61,6 +61,16 @@ class JogoApiTest extends TestCase
             ->assertJsonValidationErrors('data_lancamento');
     }
 
+    public function test_store_rejeita_data_em_formato_ambiguo(): void
+    {
+        $this->postJson('/api/jogos', [
+            'nome' => 'Jogo',
+            'data_lancamento' => '10/12/2020',
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('data_lancamento');
+    }
+
     public function test_show_retorna_o_jogo(): void
     {
         $jogo = Jogo::factory()->create();

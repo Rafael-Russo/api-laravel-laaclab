@@ -88,4 +88,11 @@ class PlataformaApiTest extends TestCase
     {
         $this->deleteJson('/api/plataformas/999')->assertNotFound();
     }
+
+    public function test_a_factory_gera_mais_plataformas_que_o_tamanho_da_lista(): void
+    {
+        Plataforma::factory()->count(20)->create();
+
+        $this->assertDatabaseCount('plataformas', 20);
+    }
 }

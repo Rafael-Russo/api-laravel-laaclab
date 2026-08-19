@@ -123,6 +123,26 @@ class UsuarioApiTest extends TestCase
         $this->putJson('/api/usuarios/999', ['bio' => 'x'])->assertNotFound();
     }
 
+    public function test_update_troca_a_senha(): void
+    {
+        $usuario = Usuario::factory()->create();
+
+        $this->putJson("/api/usuarios/{$usuario->id}", ['senha' => 'outra-senha-8'])
+            ->assertOk();
+
+        $this->assertTrue(Hash::check('outra-senha-8', $usuario->fresh()->senha_hash));
+    }
+
+    public function test_update_rejeita_email_de_outro_usuario(): void
+    {
+        $outro = Usuario::factory()->create(['email' => 'ocupado@laac.test']);
+        $usuario = Usuario::factory()->create();
+
+        $this->putJson("/api/usuarios/{$usuario->id}", ['email' => 'ocupado@laac.test'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('email');
+    }
+
     public function test_destroy_remove_o_usuario_e_retorna_204(): void
     {
         $usuario = Usuario::factory()->create();

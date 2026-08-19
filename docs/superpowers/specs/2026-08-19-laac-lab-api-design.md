@@ -243,6 +243,21 @@ Duas tabelas do DDL têm nome no singular (`biblioteca_usuario`,
 `bugometro_status`). Mantemos o nome do DDL em vez de pluralizar, porque
 divergir do schema custa mais do que a inconsistência de nomenclatura.
 
+Todo `Route::apiResource` declara `->parameters()` explicitamente, pelo mesmo
+motivo de todo model declarar `$table`: o pluralizador/singularizador do
+Eloquent é inglês e erra nos nomes em português. `apiResource` usa esse mesmo
+inflector para derivar o parâmetro de rota do route-model binding a partir do
+nome do recurso — sem declarar explicitamente, `avaliacoes` viraria
+`{avaliaco}`, `notificacoes` viraria `{notificaco}` e `curtidas_avaliacoes`
+viraria `{curtidas_avaliaco}`, quebrando o binding com um erro de container
+em vez de um 404 limpo. Não se depende de acerto acidental, o mesmo raciocínio
+de `$table`:
+
+```php
+Route::apiResource('jogos', JogoController::class)
+    ->parameters(['jogos' => 'jogo']);
+```
+
 Todos os controllers estendem `App\Http\Controllers\Controller`.
 
 ## 5. Modelo de dados

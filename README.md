@@ -62,6 +62,11 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 Banco alternável pelo `.env`: `DB_CONNECTION=sqlite` (padrão) ou `mysql`.
 Depois de trocar, rode `php artisan migrate:fresh`.
 
+`DB_DATABASE` é exclusiva do MySQL. O SQLite usa a sua própria variável,
+`DB_SQLITE_DATABASE`; se ela não estiver definida, o padrão é
+`database/database.sqlite`. Isso evita que trocar `DB_CONNECTION` de volta
+para `sqlite` continue lendo o nome do banco MySQL.
+
 ### Endpoints da Fase 1
 
 Cada recurso expõe os cinco verbos REST:
@@ -76,5 +81,10 @@ Cada recurso expõe os cinco verbos REST:
 
 Recursos disponíveis: `usuarios`, `jogos`, `plataformas`.
 
-Em `usuarios`, a senha é enviada no campo `senha` (texto puro) e gravada com
-hash na coluna `senha_hash`, que nunca aparece nas respostas.
+Em `usuarios`, a senha é enviada no campo `senha` (texto puro, mínimo de 8
+caracteres) e gravada com hash na coluna `senha_hash`, que nunca aparece nas
+respostas.
+
+Em `jogos`, `data_lancamento` deve ser enviada no formato `YYYY-MM-DD`
+(ex.: `2020-12-10`). Outros formatos são rejeitados com 422 para evitar
+ambiguidade entre dia e mês.

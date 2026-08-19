@@ -18,7 +18,7 @@ class PlataformaFactory extends Factory
     public function definition(): array
     {
         return [
-            'nome' => fake()->unique()->randomElement([
+            'nome' => fake()->randomElement([
                 'PlayStation 5', 'Xbox Series X', 'Nintendo Switch',
                 'PC', 'Steam Deck', 'PlayStation 4', 'Xbox One',
             ]),

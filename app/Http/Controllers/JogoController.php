@@ -17,12 +17,12 @@ class JogoController extends Controller
     {
         $dados = $request->validate([
             'nome'            => 'required|string|max:100',
-            'descricao'       => 'nullable|string',
+            'descricao'       => 'nullable|string|max:5000',
             'genero'          => 'nullable|string|max:50',
             'classificacao'   => 'nullable|string|max:10',
             'desenvolvedora'  => 'nullable|string|max:100',
-            'data_lancamento' => 'nullable|date',
-            'capa_url'        => 'nullable|string',
+            'data_lancamento' => 'nullable|date_format:Y-m-d',
+            'capa_url'        => 'nullable|string|max:2048|url',
         ]);
 
         $jogo = Jogo::create($dados);
@@ -39,12 +39,12 @@ class JogoController extends Controller
     {
         $dados = $request->validate([
             'nome'            => 'sometimes|string|max:100',
-            'descricao'       => 'nullable|string',
+            'descricao'       => 'nullable|string|max:5000',
             'genero'          => 'nullable|string|max:50',
             'classificacao'   => 'nullable|string|max:10',
             'desenvolvedora'  => 'nullable|string|max:100',
-            'data_lancamento' => 'nullable|date',
-            'capa_url'        => 'nullable|string',
+            'data_lancamento' => 'nullable|date_format:Y-m-d',
+            'capa_url'        => 'nullable|string|max:2048|url',
         ]);
 
         $jogo->update($dados);

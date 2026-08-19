@@ -39,7 +39,11 @@ return [
             // variavel para que trocar DB_CONNECTION nao quebre o outro banco.
             'database' => env('DB_SQLITE_DATABASE', database_path('database.sqlite')),
             'prefix' => '',
-            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
+            // filter_var (nao so env()) porque o phpunit.xml fixa esta env var
+            // como "true"; o PHPUnit normaliza esse literal para bool antes de
+            // repassar ao processo, o que chega aqui como a string "1" — e
+            // env() so reconhece os literais "true"/"false", nao "1"/"0".
+            'foreign_key_constraints' => filter_var(env('DB_FOREIGN_KEYS', true), FILTER_VALIDATE_BOOLEAN),
             'busy_timeout' => null,
             'journal_mode' => null,
             'synchronous' => null,
@@ -60,7 +64,9 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'strict' => true,
-            'engine' => null,
+            // InnoDB por padrao: MyISAM nao suporta FKs e ignoraria em
+            // silencio o ON DELETE CASCADE que as migrations declaram.
+            'engine' => env('DB_ENGINE', 'InnoDB'),
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],

@@ -21,8 +21,8 @@ class UsuarioController extends Controller
             'email'        => 'required|email|max:100|unique:usuarios,email',
             'senha'        => 'required|string|min:8',
             'idade'        => 'nullable|integer|min:0|max:150',
-            'avatar_url'   => 'nullable|string',
-            'bio'          => 'nullable|string',
+            'avatar_url'   => 'nullable|string|max:2048|url',
+            'bio'          => 'nullable|string|max:5000',
             'nivel'        => 'sometimes|integer|min:1',
         ]);
 
@@ -49,8 +49,8 @@ class UsuarioController extends Controller
             ],
             'senha'      => 'sometimes|string|min:8',
             'idade'      => 'nullable|integer|min:0|max:150',
-            'avatar_url' => 'nullable|string',
-            'bio'        => 'nullable|string',
+            'avatar_url' => 'nullable|string|max:2048|url',
+            'bio'        => 'nullable|string|max:5000',
             'nivel'      => 'sometimes|integer|min:1',
         ]);
 
