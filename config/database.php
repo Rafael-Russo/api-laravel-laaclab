@@ -35,7 +35,9 @@ return [
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),
-            'database' => env('DB_DATABASE', database_path('database.sqlite')),
+            // DB_DATABASE e exclusiva do MySQL. O SQLite usa a sua propria
+            // variavel para que trocar DB_CONNECTION nao quebre o outro banco.
+            'database' => env('DB_SQLITE_DATABASE', database_path('database.sqlite')),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
             'busy_timeout' => null,
