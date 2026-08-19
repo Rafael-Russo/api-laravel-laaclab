@@ -56,3 +56,25 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## LaaC Lab — API
+
+Banco alternável pelo `.env`: `DB_CONNECTION=sqlite` (padrão) ou `mysql`.
+Depois de trocar, rode `php artisan migrate:fresh`.
+
+### Endpoints da Fase 1
+
+Cada recurso expõe os cinco verbos REST:
+
+| Verbo | URI | Ação |
+|---|---|---|
+| GET | `/api/{recurso}` | lista todos (200) |
+| GET | `/api/{recurso}/{id}` | busca um (200 / 404) |
+| POST | `/api/{recurso}` | cria (201 / 422) |
+| PUT/PATCH | `/api/{recurso}/{id}` | atualiza (200 / 404 / 422) |
+| DELETE | `/api/{recurso}/{id}` | remove (204 / 404) |
+
+Recursos disponíveis: `usuarios`, `jogos`, `plataformas`.
+
+Em `usuarios`, a senha é enviada no campo `senha` (texto puro) e gravada com
+hash na coluna `senha_hash`, que nunca aparece nas respostas.
