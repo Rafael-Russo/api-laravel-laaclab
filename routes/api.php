@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\JogoController;
+use App\Http\Controllers\JogoPlataformaController;
 use App\Http\Controllers\PlataformaController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
@@ -18,3 +19,5 @@ Route::apiResource('jogos', JogoController::class)
     ->parameters(['jogos' => 'jogo']);
 Route::apiResource('plataformas', PlataformaController::class)
     ->parameters(['plataformas' => 'plataforma']);
+Route::apiResource('jogos_plataformas', JogoPlataformaController::class)
+    ->parameters(['jogos_plataformas' => 'jogo_plataforma']);

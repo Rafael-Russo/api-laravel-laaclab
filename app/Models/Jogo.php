@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Jogo extends Model
 {
@@ -31,5 +32,15 @@ class Jogo extends Model
             // Y-m-d para o JSON sair como "2020-12-10", nao datetime ISO.
             'data_lancamento' => 'date:Y-m-d',
         ];
+    }
+
+    public function plataformas(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Plataforma::class,
+            'jogos_plataformas',
+            'jogo_id',
+            'plataforma_id',
+        )->withTimestamps('criado_em', 'atualizado_em');
     }
 }
