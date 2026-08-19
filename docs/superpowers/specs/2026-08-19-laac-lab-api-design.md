@@ -205,7 +205,12 @@ class Jogo extends Model
 `--api`, cinco métodos, todos com retorno tipado `JsonResponse`, usando
 route-model binding em `show`/`update`/`destroy`.
 
-**Rota** — `Route::apiResource('jogos', JogoController::class);`
+**Rota** — com o parâmetro declarado explicitamente (ver seção 4.2):
+
+```php
+Route::apiResource('jogos', JogoController::class)
+    ->parameters(['jogos' => 'jogo']);
+```
 
 ### 4.1 Contrato de resposta
 
