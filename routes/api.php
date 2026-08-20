@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AvaliacaoController;
 use App\Http\Controllers\BibliotecaUsuarioController;
 use App\Http\Controllers\JogoController;
 use App\Http\Controllers\JogoPlataformaController;
@@ -24,3 +25,5 @@ Route::apiResource('jogos_plataformas', JogoPlataformaController::class)
     ->parameters(['jogos_plataformas' => 'jogo_plataforma']);
 Route::apiResource('biblioteca_usuario', BibliotecaUsuarioController::class)
     ->parameters(['biblioteca_usuario' => 'biblioteca_usuario']);
+Route::apiResource('avaliacoes', AvaliacaoController::class)
+    ->parameters(['avaliacoes' => 'avaliacao']);

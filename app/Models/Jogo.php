@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Jogo extends Model
 {
@@ -42,5 +43,10 @@ class Jogo extends Model
             'jogo_id',
             'plataforma_id',
         )->withTimestamps('criado_em', 'atualizado_em');
+    }
+
+    public function avaliacoes(): HasMany
+    {
+        return $this->hasMany(Avaliacao::class, 'jogo_id');
     }
 }
