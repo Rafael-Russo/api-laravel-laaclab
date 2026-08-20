@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Jogo extends Model
 {
@@ -48,5 +49,10 @@ class Jogo extends Model
     public function avaliacoes(): HasMany
     {
         return $this->hasMany(Avaliacao::class, 'jogo_id');
+    }
+
+    public function bugometroStatus(): HasOne
+    {
+        return $this->hasOne(BugometroStatus::class, 'jogo_id');
     }
 }

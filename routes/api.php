@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AvaliacaoController;
 use App\Http\Controllers\BibliotecaUsuarioController;
+use App\Http\Controllers\BugometroStatusController;
 use App\Http\Controllers\CurtidaAvaliacaoController;
 use App\Http\Controllers\JogoController;
 use App\Http\Controllers\JogoPlataformaController;
@@ -30,3 +31,5 @@ Route::apiResource('avaliacoes', AvaliacaoController::class)
     ->parameters(['avaliacoes' => 'avaliacao']);
 Route::apiResource('curtidas_avaliacoes', CurtidaAvaliacaoController::class)
     ->parameters(['curtidas_avaliacoes' => 'curtida_avaliacao']);
+Route::apiResource('bugometro_status', BugometroStatusController::class)
+    ->parameters(['bugometro_status' => 'bugometro_status']);
