@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -59,5 +60,17 @@ class Usuario extends Authenticatable
     public function getAuthPassword(): string
     {
         return $this->senha_hash;
+    }
+
+    public function jogos(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Jogo::class,
+            'biblioteca_usuario',
+            'usuario_id',
+            'jogo_id',
+        )
+            ->withPivot('favorito')
+            ->withTimestamps('adicionado_em', 'atualizado_em');
     }
 }
