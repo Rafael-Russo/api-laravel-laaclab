@@ -67,7 +67,7 @@ Depois de trocar, rode `php artisan migrate:fresh`.
 `database/database.sqlite`. Isso evita que trocar `DB_CONNECTION` de volta
 para `sqlite` continue lendo o nome do banco MySQL.
 
-### Endpoints da Fase 1
+### Endpoints
 
 Cada recurso expõe os cinco verbos REST:
 

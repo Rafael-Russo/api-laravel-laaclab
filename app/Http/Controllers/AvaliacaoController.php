@@ -57,7 +57,7 @@ class AvaliacaoController extends Controller
             'usuario_id' => "$obrigatorio|integer|exists:usuarios,id",
             'jogo_id' => "$obrigatorio|integer|exists:jogos,id",
             // decimal(2,1) representa no maximo 9.9.
-            'nota' => 'nullable|numeric|min:0|max:9.9',
+            'nota' => 'nullable|numeric|min:0|max:9.9|decimal:0,1',
             'comentario' => 'nullable|string|max:5000',
         ];
     }

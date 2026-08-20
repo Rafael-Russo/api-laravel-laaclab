@@ -136,7 +136,7 @@ Regras derivadas mecanicamente do DDL:
 | `UNIQUE` | `unique:tabela,coluna` | `unique:tabela,coluna,{id}` |
 | `TEXT` nullable | `nullable` + `string` | idem |
 | `INT` | `integer` | idem |
-| `DECIMAL(2,1)` | `numeric` + `min:0` + `max:9.9` | idem |
+| `DECIMAL(2,1)` | `numeric` + `min:0` + `max:9.9` + `decimal:0,1` | idem |
 | `BOOLEAN` | `boolean` | idem |
 | `DATE` | `date` | idem |
 | FK | `required` + `exists:tabela_alvo,id` | `sometimes` + `exists:…` |

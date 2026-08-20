@@ -76,6 +76,23 @@ class AvaliacaoApiTest extends TestCase
             ->assertJsonValidationErrors('nota');
     }
 
+    public function test_store_rejeita_nota_com_casas_decimais_demais(): void
+    {
+        $usuario = Usuario::factory()->create();
+        $jogo = Jogo::factory()->create();
+
+        // decimal(2,1) guarda uma casa. 8.55 seria arredondado no MySQL e
+        // gravado literal no SQLite — bancos divergentes a partir da mesma
+        // entrada.
+        $this->postJson('/api/avaliacoes', [
+            'usuario_id' => $usuario->id,
+            'jogo_id' => $jogo->id,
+            'nota' => 8.55,
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('nota');
+    }
+
     public function test_store_com_usuario_inexistente_retorna_422(): void
     {
         $jogo = Jogo::factory()->create();

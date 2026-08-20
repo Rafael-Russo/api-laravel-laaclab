@@ -81,6 +81,19 @@ class CurtidaAvaliacaoApiTest extends TestCase
         $this->assertDatabaseMissing('curtidas_avaliacoes', ['id' => $curtida->id]);
     }
 
+    public function test_apagar_usuario_apaga_avaliacao_e_curtidas_em_cascata(): void
+    {
+        $curtida = CurtidaAvaliacao::factory()->create();
+        $avaliacao = Avaliacao::findOrFail($curtida->avaliacao_id);
+
+        // Apaga o AUTOR da avaliacao, nao quem curtiu: a cascata tem que
+        // percorrer usuario -> avaliacao -> curtida.
+        Usuario::findOrFail($avaliacao->usuario_id)->delete();
+
+        $this->assertDatabaseMissing('avaliacoes', ['id' => $avaliacao->id]);
+        $this->assertDatabaseMissing('curtidas_avaliacoes', ['id' => $curtida->id]);
+    }
+
     public function test_a_avaliacao_expoe_suas_curtidas(): void
     {
         $curtida = CurtidaAvaliacao::factory()->create();
@@ -114,6 +127,11 @@ class CurtidaAvaliacaoApiTest extends TestCase
         ])
             ->assertOk()
             ->assertJsonPath('usuario_id', $outro->id);
+
+        $this->assertDatabaseHas('curtidas_avaliacoes', [
+            'id' => $curtida->id,
+            'usuario_id' => $outro->id,
+        ]);
     }
 
     public function test_update_de_avaliacao_para_par_ja_existente_retorna_422(): void

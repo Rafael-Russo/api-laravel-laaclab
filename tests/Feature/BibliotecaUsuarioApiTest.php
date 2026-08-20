@@ -95,6 +95,15 @@ class BibliotecaUsuarioApiTest extends TestCase
         $this->assertDatabaseMissing('biblioteca_usuario', ['id' => $item->id]);
     }
 
+    public function test_apagar_jogo_remove_o_item_das_bibliotecas_em_cascata(): void
+    {
+        $item = BibliotecaUsuario::factory()->create();
+
+        Jogo::findOrFail($item->jogo_id)->delete();
+
+        $this->assertDatabaseMissing('biblioteca_usuario', ['id' => $item->id]);
+    }
+
     public function test_o_usuario_expoe_seus_jogos_com_o_pivo(): void
     {
         $item = BibliotecaUsuario::factory()->create(['favorito' => true]);
