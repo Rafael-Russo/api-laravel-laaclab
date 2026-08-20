@@ -6,6 +6,7 @@ use App\Http\Controllers\BugometroStatusController;
 use App\Http\Controllers\CurtidaAvaliacaoController;
 use App\Http\Controllers\JogoController;
 use App\Http\Controllers\JogoPlataformaController;
+use App\Http\Controllers\MetricaBugController;
 use App\Http\Controllers\PlataformaController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
@@ -33,3 +34,5 @@ Route::apiResource('curtidas_avaliacoes', CurtidaAvaliacaoController::class)
     ->parameters(['curtidas_avaliacoes' => 'curtida_avaliacao']);
 Route::apiResource('bugometro_status', BugometroStatusController::class)
     ->parameters(['bugometro_status' => 'bugometro_status']);
+Route::apiResource('metricas_bug', MetricaBugController::class)
+    ->parameters(['metricas_bug' => 'metrica_bug']);

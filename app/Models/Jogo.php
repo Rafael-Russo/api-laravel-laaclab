@@ -55,4 +55,9 @@ class Jogo extends Model
     {
         return $this->hasOne(BugometroStatus::class, 'jogo_id');
     }
+
+    public function metricasBug(): HasMany
+    {
+        return $this->hasMany(MetricaBug::class, 'jogo_id');
+    }
 }
