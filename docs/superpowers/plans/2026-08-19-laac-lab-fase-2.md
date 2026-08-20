@@ -34,6 +34,8 @@ A assinatura varia de propósito, e isso **não é inconsistência acidental**: 
 
 **Unicidade composta validada em dois níveis.** As quatro constraints da spec §3.8 são checadas na aplicação com `Rule::unique(...)->where(...)`, devolvendo 422, e existem também como índice único no banco. Cada entidade tem um teste para cada nível: um que espera 422 pela API, e um que insere direto pelo model e espera `QueryException`. Sem o segundo, a "rede de segurança" da spec é uma afirmação não verificada.
 
+**`update` completa o par antes de validar.** A regra `unique` composta fica pendurada em apenas um dos dois campos do par. Num `update` parcial que envia só o *outro* campo, o `sometimes` pula todas as regras do campo ausente — inclusive a checagem de unicidade — e o par duplicado chegaria ao banco como `QueryException`, virando 500 em vez do 422 que a spec §3.8 exige. Por isso cada controller com par único tem um `private function completaOPar(Request $request, Model $existente): void` que preenche na request as metades ausentes com os valores já gravados, chamado no início do `update`. Cada uma dessas entidades tem um teste que envia só o campo *sem* a regra e espera 422 — sem ele, o furo volta silenciosamente.
+
 **Cascata testada por comportamento, não por configuração.** A Fase 0 verificou que `foreign_key_constraints` está ligado lendo o valor do config. Esta fase é a primeira com FKs de verdade, então cada entidade ganha um teste que apaga o pai e afirma que o filho sumiu — rodando em SQLite, onde a cascata é silenciosamente ignorada se o pragma não chegar à conexão.
 
 **`nota` usa o cast `decimal:1`.** O JSON sai como `"8.5"` (string), não `8.5` (número). É o comportamento do cast `decimal` do Laravel, e o mesmo que o `Product` do esqueleto usava. A vantagem é normalização: `8` é gravado e devolvido como `"8.0"`, sempre com uma casa. Os testes afirmam a string — isso é esperado, não um bug.
@@ -214,6 +216,27 @@ class JogoPlataformaApiTest extends TestCase
             'id' => $vinculo->id,
             'plataforma_id' => $outra->id,
         ]);
+    }
+
+    public function test_update_de_jogo_para_par_ja_existente_retorna_422(): void
+    {
+        $vinculo = JogoPlataforma::factory()->create();
+        $outroJogo = Jogo::factory()->create();
+
+        // Ocupa o par (outroJogo, plataforma do primeiro vinculo).
+        JogoPlataforma::create([
+            'jogo_id' => $outroJogo->id,
+            'plataforma_id' => $vinculo->plataforma_id,
+        ]);
+
+        // Mover o primeiro vinculo para outroJogo colidiria com esse segundo.
+        // O update manda so jogo_id: a checagem de unicidade tem que rodar
+        // mesmo assim.
+        $this->putJson("/api/jogos_plataformas/{$vinculo->id}", [
+            'jogo_id' => $outroJogo->id,
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('plataforma_id');
     }
 
     public function test_update_de_id_inexistente_retorna_404(): void
@@ -456,6 +479,8 @@ class JogoPlataformaController extends Controller
 
     public function update(Request $request, JogoPlataforma $jogoPlataforma): JsonResponse
     {
+        $this->completaOPar($request, $jogoPlataforma);
+
         $dados = $request->validate($this->regras($request, $jogoPlataforma));
 
         $jogoPlataforma->update($dados);
@@ -498,6 +523,24 @@ class JogoPlataformaController extends Controller
             ],
         ];
     }
+
+    /**
+     * Preenche na request as metades do par que ela nao trouxe, usando o que
+     * ja esta gravado.
+     *
+     * Sem isto, um update que envia so jogo_id nunca dispara a checagem de
+     * unicidade: ela vive nas regras de plataforma_id, que o "sometimes" pula
+     * quando o campo esta ausente. O par duplicado passaria pela validacao e
+     * so seria barrado pelo indice unico do banco, virando 500 em vez do 422
+     * que a secao 3.8 da spec exige.
+     */
+    private function completaOPar(Request $request, JogoPlataforma $existente): void
+    {
+        $request->merge([
+            'jogo_id' => $request->input('jogo_id', $existente->jogo_id),
+            'plataforma_id' => $request->input('plataforma_id', $existente->plataforma_id),
+        ]);
+    }
 }
 ```
 
@@ -534,10 +577,10 @@ Route::apiResource('jogos_plataformas', JogoPlataformaController::class)
 - [ ] **Step 9: Rodar o teste, conferir as rotas e commitar**
 
 Run: `php artisan test --filter=JogoPlataformaApiTest`
-Expected: PASS, 15 testes.
+Expected: PASS, 16 testes.
 
 Run: `php artisan test`
-Expected: PASS, 65 testes (50 da Fase 1 + 15).
+Expected: PASS, 66 testes (50 da Fase 1 + 16).
 
 Run: `php artisan route:list --path=api`
 Expected: 20 rotas; as novas usam o parâmetro `{jogo_plataforma}`.
@@ -711,6 +754,26 @@ class BibliotecaUsuarioApiTest extends TestCase
             'id' => $item->id,
             'favorito' => true,
         ]);
+    }
+
+    public function test_update_de_usuario_para_par_ja_existente_retorna_422(): void
+    {
+        $item = BibliotecaUsuario::factory()->create();
+        $outroUsuario = Usuario::factory()->create();
+
+        // Ocupa o par (outroUsuario, jogo do primeiro item).
+        BibliotecaUsuario::create([
+            'usuario_id' => $outroUsuario->id,
+            'jogo_id' => $item->jogo_id,
+        ]);
+
+        // O update manda so usuario_id: a checagem de unicidade tem que rodar
+        // mesmo assim.
+        $this->putJson("/api/biblioteca_usuario/{$item->id}", [
+            'usuario_id' => $outroUsuario->id,
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('jogo_id');
     }
 
     public function test_update_de_id_inexistente_retorna_404(): void
@@ -932,6 +995,8 @@ class BibliotecaUsuarioController extends Controller
 
     public function update(Request $request, BibliotecaUsuario $bibliotecaUsuario): JsonResponse
     {
+        $this->completaOPar($request, $bibliotecaUsuario);
+
         $dados = $request->validate($this->regras($request, $bibliotecaUsuario));
 
         $bibliotecaUsuario->update($dados);
@@ -970,6 +1035,24 @@ class BibliotecaUsuarioController extends Controller
             'favorito' => 'sometimes|boolean',
         ];
     }
+
+    /**
+     * Preenche na request as metades do par que ela nao trouxe, usando o que
+     * ja esta gravado.
+     *
+     * Sem isto, um update que envia so usuario_id nunca dispara a checagem de
+     * unicidade: ela vive nas regras de jogo_id, que o "sometimes" pula quando
+     * o campo esta ausente. O par duplicado passaria pela validacao e so seria
+     * barrado pelo indice unico do banco, virando 500 em vez do 422 que a
+     * secao 3.8 da spec exige.
+     */
+    private function completaOPar(Request $request, BibliotecaUsuario $existente): void
+    {
+        $request->merge([
+            'usuario_id' => $request->input('usuario_id', $existente->usuario_id),
+            'jogo_id' => $request->input('jogo_id', $existente->jogo_id),
+        ]);
+    }
 }
 ```
 
@@ -987,10 +1070,10 @@ Route::apiResource('biblioteca_usuario', BibliotecaUsuarioController::class)
 - [ ] **Step 9: Rodar o teste, conferir as rotas e commitar**
 
 Run: `php artisan test --filter=BibliotecaUsuarioApiTest`
-Expected: PASS, 14 testes.
+Expected: PASS, 15 testes.
 
 Run: `php artisan test`
-Expected: PASS, 79 testes.
+Expected: PASS, 81 testes.
 
 Run: `php artisan route:list --path=api`
 Expected: 25 rotas; as novas usam o parâmetro `{biblioteca_usuario}`.
@@ -1472,7 +1555,7 @@ Run: `php artisan test --filter=AvaliacaoApiTest`
 Expected: PASS, 17 testes.
 
 Run: `php artisan test`
-Expected: PASS, 96 testes.
+Expected: PASS, 98 testes.
 
 Run: `php artisan route:list --path=api`
 Expected: 30 rotas. **Conferir explicitamente que o parâmetro é `{avaliacao}` e não `{avaliaco}`** — é o caso que motivou a regra do `->parameters()`.
@@ -1628,6 +1711,26 @@ class CurtidaAvaliacaoApiTest extends TestCase
         ])
             ->assertOk()
             ->assertJsonPath('usuario_id', $outro->id);
+    }
+
+    public function test_update_de_avaliacao_para_par_ja_existente_retorna_422(): void
+    {
+        $curtida = CurtidaAvaliacao::factory()->create();
+        $outraAvaliacao = Avaliacao::factory()->create();
+
+        // Ocupa o par (outraAvaliacao, usuario da primeira curtida).
+        CurtidaAvaliacao::create([
+            'avaliacao_id' => $outraAvaliacao->id,
+            'usuario_id' => $curtida->usuario_id,
+        ]);
+
+        // O update manda so avaliacao_id: a checagem de unicidade tem que
+        // rodar mesmo assim.
+        $this->putJson("/api/curtidas_avaliacoes/{$curtida->id}", [
+            'avaliacao_id' => $outraAvaliacao->id,
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('usuario_id');
     }
 
     public function test_update_de_id_inexistente_retorna_404(): void
@@ -1826,6 +1929,8 @@ class CurtidaAvaliacaoController extends Controller
 
     public function update(Request $request, CurtidaAvaliacao $curtidaAvaliacao): JsonResponse
     {
+        $this->completaOPar($request, $curtidaAvaliacao);
+
         $dados = $request->validate($this->regras($request, $curtidaAvaliacao));
 
         $curtidaAvaliacao->update($dados);
@@ -1863,6 +1968,24 @@ class CurtidaAvaliacaoController extends Controller
             ],
         ];
     }
+
+    /**
+     * Preenche na request as metades do par que ela nao trouxe, usando o que
+     * ja esta gravado.
+     *
+     * Sem isto, um update que envia so avaliacao_id nunca dispara a checagem
+     * de unicidade: ela vive nas regras de usuario_id, que o "sometimes" pula
+     * quando o campo esta ausente. O par duplicado passaria pela validacao e
+     * so seria barrado pelo indice unico do banco, virando 500 em vez do 422
+     * que a secao 3.8 da spec exige.
+     */
+    private function completaOPar(Request $request, CurtidaAvaliacao $existente): void
+    {
+        $request->merge([
+            'avaliacao_id' => $request->input('avaliacao_id', $existente->avaliacao_id),
+            'usuario_id' => $request->input('usuario_id', $existente->usuario_id),
+        ]);
+    }
 }
 ```
 
@@ -1880,10 +2003,10 @@ Route::apiResource('curtidas_avaliacoes', CurtidaAvaliacaoController::class)
 - [ ] **Step 9: Rodar o teste, conferir as rotas e commitar**
 
 Run: `php artisan test --filter=CurtidaAvaliacaoApiTest`
-Expected: PASS, 13 testes.
+Expected: PASS, 14 testes.
 
 Run: `php artisan test`
-Expected: PASS, 109 testes.
+Expected: PASS, 112 testes.
 
 Run: `php artisan route:list --path=api`
 Expected: 35 rotas; as novas usam o parâmetro `{curtida_avaliacao}`.
@@ -1899,7 +2022,7 @@ git commit -m "feat: entidade curtidas_avaliacoes completa"
 
 As quatro entidades desta fase nasceram com `private function regras()`. Os três controllers da Fase 1 ainda duplicam os arrays entre `store` e `update`. Esta task alinha os sete e fecha a fase com as verificações e a documentação.
 
-Isto é uma refatoração pura: **nenhum teste muda, nenhum teste novo é escrito, e os 109 testes continuam verdes exatamente como estão.** Se algum teste quebrar, a refatoração mudou comportamento e está errada.
+Isto é uma refatoração pura: **nenhum teste muda, nenhum teste novo é escrito, e os 112 testes continuam verdes exatamente como estão.** Se algum teste quebrar, a refatoração mudou comportamento e está errada.
 
 **Files:**
 - Modify: `app/Http/Controllers/UsuarioController.php`
@@ -1917,7 +2040,7 @@ Isto é uma refatoração pura: **nenhum teste muda, nenhum teste novo é escrit
 
 Run: `php artisan test`
 
-Expected: PASS, 109 testes. Este é o número que deve permanecer idêntico ao final.
+Expected: PASS, 112 testes. Este é o número que deve permanecer idêntico ao final.
 
 - [ ] **Step 2: Refatorar o `UsuarioController`**
 
@@ -2070,7 +2193,7 @@ Em `app/Http/Controllers/PlataformaController.php`:
 - [ ] **Step 6: Verificações de fechamento da fase**
 
 Run: `php artisan test`
-Expected: PASS, **109 testes** — o mesmo número do Step 1. Qualquer diferença significa que a refatoração mudou comportamento.
+Expected: PASS, **112 testes** — o mesmo número do Step 1. Qualquer diferença significa que a refatoração mudou comportamento.
 
 Run: `php artisan migrate:fresh --seed`
 Expected: 10 migrations rodam sem erro, na ordem: `sessions`, `cache`, `jobs`, `usuarios`, `jogos`, `plataformas`, `jogos_plataformas`, `biblioteca_usuario`, `avaliacoes`, `curtidas_avaliacoes`.
@@ -2110,7 +2233,7 @@ git commit -m "refactor: extrai regras de validacao nos controllers da Fase 1 e 
 ## Estado esperado ao fim do plano
 
 - 10 migrations, 7 models de domínio, 7 controllers de API, 7 factories.
-- 35 rotas sob `/api`, cobertas por 109 testes verdes.
+- 35 rotas sob `/api`, cobertas por 112 testes verdes.
 - FKs em cascata verificadas por comportamento, não por configuração.
 - As quatro constraints de unicidade da spec §3.8 verificadas nos dois níveis: 422 pela API e `QueryException` pelo banco.
 - 5 commits, um por unidade completa:
