@@ -16,15 +16,7 @@ class UsuarioController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $dados = $request->validate([
-            'nome_usuario' => 'required|string|max:50|unique:usuarios,nome_usuario',
-            'email'        => 'required|email|max:100|unique:usuarios,email',
-            'senha'        => 'required|string|min:8',
-            'idade'        => 'nullable|integer|min:0|max:150',
-            'avatar_url'   => 'nullable|string|max:2048|url',
-            'bio'          => 'nullable|string|max:5000',
-            'nivel'        => 'sometimes|integer|min:1',
-        ]);
+        $dados = $request->validate($this->regras());
 
         $usuario = Usuario::create($this->trocaSenhaPelaColuna($dados));
 
@@ -38,21 +30,7 @@ class UsuarioController extends Controller
 
     public function update(Request $request, Usuario $usuario): JsonResponse
     {
-        $dados = $request->validate([
-            'nome_usuario' => [
-                'sometimes', 'string', 'max:50',
-                Rule::unique('usuarios', 'nome_usuario')->ignore($usuario),
-            ],
-            'email' => [
-                'sometimes', 'email', 'max:100',
-                Rule::unique('usuarios', 'email')->ignore($usuario),
-            ],
-            'senha'      => 'sometimes|string|min:8',
-            'idade'      => 'nullable|integer|min:0|max:150',
-            'avatar_url' => 'nullable|string|max:2048|url',
-            'bio'        => 'nullable|string|max:5000',
-            'nivel'      => 'sometimes|integer|min:1',
-        ]);
+        $dados = $request->validate($this->regras($usuario));
 
         $usuario->update($this->trocaSenhaPelaColuna($dados));
 
@@ -64,6 +42,34 @@ class UsuarioController extends Controller
         $usuario->delete();
 
         return response()->json(null, 204);
+    }
+
+    /**
+     * Regras compartilhadas por store e update. Passar $existente troca
+     * "required" por "sometimes" e faz as checagens de unicidade ignorarem
+     * o proprio registro.
+     *
+     * @return array<string, mixed>
+     */
+    private function regras(?Usuario $existente = null): array
+    {
+        $obrigatorio = $existente === null ? 'required' : 'sometimes';
+
+        return [
+            'nome_usuario' => [
+                $obrigatorio, 'string', 'max:50',
+                Rule::unique('usuarios', 'nome_usuario')->ignore($existente),
+            ],
+            'email' => [
+                $obrigatorio, 'email', 'max:100',
+                Rule::unique('usuarios', 'email')->ignore($existente),
+            ],
+            'senha' => "$obrigatorio|string|min:8",
+            'idade' => 'nullable|integer|min:0|max:150',
+            'avatar_url' => 'nullable|string|max:2048|url',
+            'bio' => 'nullable|string|max:5000',
+            'nivel' => 'sometimes|integer|min:1',
+        ];
     }
 
     /**

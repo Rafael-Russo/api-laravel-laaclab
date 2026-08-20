@@ -79,7 +79,18 @@ Cada recurso expõe os cinco verbos REST:
 | PUT/PATCH | `/api/{recurso}/{id}` | atualiza (200 / 404 / 422) |
 | DELETE | `/api/{recurso}/{id}` | remove (204 / 404) |
 
-Recursos disponíveis: `usuarios`, `jogos`, `plataformas`.
+Recursos disponíveis: `usuarios`, `jogos`, `plataformas`, `jogos_plataformas`,
+`biblioteca_usuario`, `avaliacoes`, `curtidas_avaliacoes`.
+
+Os quatro últimos são relacionamentos e exigem os ids dos registros que ligam.
+Apagar um registro pai apaga os dependentes em cascata: apagar um jogo remove
+seus vínculos de plataforma, suas entradas em bibliotecas e suas avaliações;
+apagar uma avaliação remove suas curtidas.
+
+Pares que não podem repetir — `(jogo_id, plataforma_id)`,
+`(usuario_id, jogo_id)` na biblioteca e `(avaliacao_id, usuario_id)` nas
+curtidas — retornam 422. A nota de uma avaliação vai de 0 a 9.9 e é devolvida
+como string com uma casa decimal (`"8.0"`).
 
 Em `usuarios`, a senha é enviada no campo `senha` (texto puro, mínimo de 8
 caracteres) e gravada com hash na coluna `senha_hash`, que nunca aparece nas

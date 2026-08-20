@@ -15,15 +15,7 @@ class JogoController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $dados = $request->validate([
-            'nome'            => 'required|string|max:100',
-            'descricao'       => 'nullable|string|max:5000',
-            'genero'          => 'nullable|string|max:50',
-            'classificacao'   => 'nullable|string|max:10',
-            'desenvolvedora'  => 'nullable|string|max:100',
-            'data_lancamento' => 'nullable|date_format:Y-m-d',
-            'capa_url'        => 'nullable|string|max:2048|url',
-        ]);
+        $dados = $request->validate($this->regras());
 
         $jogo = Jogo::create($dados);
 
@@ -37,15 +29,7 @@ class JogoController extends Controller
 
     public function update(Request $request, Jogo $jogo): JsonResponse
     {
-        $dados = $request->validate([
-            'nome'            => 'sometimes|string|max:100',
-            'descricao'       => 'nullable|string|max:5000',
-            'genero'          => 'nullable|string|max:50',
-            'classificacao'   => 'nullable|string|max:10',
-            'desenvolvedora'  => 'nullable|string|max:100',
-            'data_lancamento' => 'nullable|date_format:Y-m-d',
-            'capa_url'        => 'nullable|string|max:2048|url',
-        ]);
+        $dados = $request->validate($this->regras($jogo));
 
         $jogo->update($dados);
 
@@ -57,5 +41,25 @@ class JogoController extends Controller
         $jogo->delete();
 
         return response()->json(null, 204);
+    }
+
+    /**
+     * Regras compartilhadas por store e update.
+     *
+     * @return array<string, mixed>
+     */
+    private function regras(?Jogo $existente = null): array
+    {
+        $obrigatorio = $existente === null ? 'required' : 'sometimes';
+
+        return [
+            'nome' => "$obrigatorio|string|max:100",
+            'descricao' => 'nullable|string|max:5000',
+            'genero' => 'nullable|string|max:50',
+            'classificacao' => 'nullable|string|max:10',
+            'desenvolvedora' => 'nullable|string|max:100',
+            'data_lancamento' => 'nullable|date_format:Y-m-d',
+            'capa_url' => 'nullable|string|max:2048|url',
+        ];
     }
 }

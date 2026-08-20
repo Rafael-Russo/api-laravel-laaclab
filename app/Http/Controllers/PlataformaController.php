@@ -15,9 +15,7 @@ class PlataformaController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $dados = $request->validate([
-            'nome' => 'required|string|max:50',
-        ]);
+        $dados = $request->validate($this->regras());
 
         $plataforma = Plataforma::create($dados);
 
@@ -31,9 +29,7 @@ class PlataformaController extends Controller
 
     public function update(Request $request, Plataforma $plataforma): JsonResponse
     {
-        $dados = $request->validate([
-            'nome' => 'sometimes|string|max:50',
-        ]);
+        $dados = $request->validate($this->regras($plataforma));
 
         $plataforma->update($dados);
 
@@ -45,5 +41,19 @@ class PlataformaController extends Controller
         $plataforma->delete();
 
         return response()->json(null, 204);
+    }
+
+    /**
+     * Regras compartilhadas por store e update.
+     *
+     * @return array<string, mixed>
+     */
+    private function regras(?Plataforma $existente = null): array
+    {
+        $obrigatorio = $existente === null ? 'required' : 'sometimes';
+
+        return [
+            'nome' => "$obrigatorio|string|max:50",
+        ];
     }
 }
