@@ -14,13 +14,19 @@ use Illuminate\Database\Seeder;
  * O frontend Flask entra com DEMO_EMAIL/DEMO_SENHA — as mesmas credenciais
  * estao no README. Mudar aqui exige mudar la.
  *
+ * O dominio NAO pode ser .test, .local, .example nem .invalid, ainda que os
+ * testes desta API usem @laac.test: sao TLDs reservados pela RFC 2606, e a
+ * validacao de e-mail do frontend (email_validator, via WTForms) os recusa.
+ * O Laravel aceita, o Flask nao — com um TLD reservado aqui, o usuario demo
+ * simplesmente nao consegue entrar pela tela de login.
+ *
  * As notas sao espalhadas de proposito pelos dois lados de 5.0: o Detalhe do
  * jogo separa polegar para cima de para baixo nesse corte, e um seed inteiro
  * de um lado so esconderia metade da tela.
  */
 class DemoSeeder extends Seeder
 {
-    public const DEMO_EMAIL = 'nikola@laac.test';
+    public const DEMO_EMAIL = 'nikola@laaclab.com.br';
 
     public const DEMO_SENHA = 'laaclab123';
 
@@ -29,11 +35,11 @@ class DemoSeeder extends Seeder
 
     /** @var list<array{string, string}> */
     private const COMPANHIA = [
-        ['rafaFPS', 'rafa@laac.test'],
-        ['Flamezera', 'flame@laac.test'],
-        ['Leozin', 'leo@laac.test'],
-        ['GamerPro', 'gamerpro@laac.test'],
-        ['JoaozinhoB84', 'joao@laac.test'],
+        ['rafaFPS', 'rafa@laaclab.com.br'],
+        ['Flamezera', 'flame@laaclab.com.br'],
+        ['Leozin', 'leo@laaclab.com.br'],
+        ['GamerPro', 'gamerpro@laaclab.com.br'],
+        ['JoaozinhoB84', 'joao@laaclab.com.br'],
     ];
 
     /** Nota e comentario, alternados sobre os jogos avaliados. */

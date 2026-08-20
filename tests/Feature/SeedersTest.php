@@ -14,7 +14,7 @@ class SeedersTest extends TestCase
     use RefreshDatabase;
 
     /** E-mail e senha do usuario demo, citados no README e usados pelo frontend. */
-    private const DEMO_EMAIL = 'nikola@laac.test';
+    private const DEMO_EMAIL = 'nikola@laaclab.com.br';
 
     private const DEMO_SENHA = 'laaclab123';
 
