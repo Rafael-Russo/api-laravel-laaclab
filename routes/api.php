@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AvaliacaoController;
 use App\Http\Controllers\BibliotecaUsuarioController;
+use App\Http\Controllers\CurtidaAvaliacaoController;
 use App\Http\Controllers\JogoController;
 use App\Http\Controllers\JogoPlataformaController;
 use App\Http\Controllers\PlataformaController;
@@ -27,3 +28,5 @@ Route::apiResource('biblioteca_usuario', BibliotecaUsuarioController::class)
     ->parameters(['biblioteca_usuario' => 'biblioteca_usuario']);
 Route::apiResource('avaliacoes', AvaliacaoController::class)
     ->parameters(['avaliacoes' => 'avaliacao']);
+Route::apiResource('curtidas_avaliacoes', CurtidaAvaliacaoController::class)
+    ->parameters(['curtidas_avaliacoes' => 'curtida_avaliacao']);
