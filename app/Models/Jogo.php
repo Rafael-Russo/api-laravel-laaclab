@@ -65,4 +65,9 @@ class Jogo extends Model
     {
         return $this->hasMany(RelatoBug::class, 'jogo_id');
     }
+
+    public function historicoBug(): HasMany
+    {
+        return $this->hasMany(HistoricoBug::class, 'jogo_id');
+    }
 }
