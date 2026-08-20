@@ -60,4 +60,9 @@ class Jogo extends Model
     {
         return $this->hasMany(MetricaBug::class, 'jogo_id');
     }
+
+    public function relatosBug(): HasMany
+    {
+        return $this->hasMany(RelatoBug::class, 'jogo_id');
+    }
 }

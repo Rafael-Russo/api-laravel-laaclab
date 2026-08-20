@@ -8,6 +8,7 @@ use App\Http\Controllers\JogoController;
 use App\Http\Controllers\JogoPlataformaController;
 use App\Http\Controllers\MetricaBugController;
 use App\Http\Controllers\PlataformaController;
+use App\Http\Controllers\RelatoBugController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,3 +37,5 @@ Route::apiResource('bugometro_status', BugometroStatusController::class)
     ->parameters(['bugometro_status' => 'bugometro_status']);
 Route::apiResource('metricas_bug', MetricaBugController::class)
     ->parameters(['metricas_bug' => 'metrica_bug']);
+Route::apiResource('relatos_bug', RelatoBugController::class)
+    ->parameters(['relatos_bug' => 'relato_bug']);
