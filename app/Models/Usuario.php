@@ -84,4 +84,9 @@ class Usuario extends Authenticatable
     {
         return $this->hasMany(Topico::class, 'usuario_id');
     }
+
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class, 'usuario_id');
+    }
 }

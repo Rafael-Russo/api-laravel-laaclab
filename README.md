@@ -81,7 +81,8 @@ Cada recurso expõe os cinco verbos REST:
 
 Recursos disponíveis: `usuarios`, `jogos`, `plataformas`, `jogos_plataformas`,
 `biblioteca_usuario`, `avaliacoes`, `curtidas_avaliacoes`, `bugometro_status`,
-`metricas_bug`, `relatos_bug`, `historico_bug`.
+`metricas_bug`, `relatos_bug`, `historico_bug`, `categorias`, `topicos`,
+`posts`.
 
 `jogos_plataformas`, `biblioteca_usuario`, `avaliacoes` e `curtidas_avaliacoes` são
 relacionamentos e exigem os ids dos registros que ligam.
@@ -101,6 +102,16 @@ porque os valores fora deles não têm significado.
 
 Nesta entrega o Bugômetro é CRUD puro: nada calcula `pontuacao` ou `status`
 automaticamente a partir das métricas.
+
+O fórum são três recursos encadeados: uma `categoria` contém `topicos`, e cada
+tópico contém `posts`. A cascata percorre os dois saltos — apagar um usuário
+remove os tópicos que ele abriu **e** os posts dentro deles, e apagar uma
+categoria faz o mesmo. Apagar só o autor de um post remove o post e deixa o
+tópico de pé.
+
+Nenhuma das três tem constraint de unicidade: duas categorias podem ter o mesmo
+nome, e dois posts podem ter o mesmo conteúdo. `conteudo` em `posts` aceita até
+5000 caracteres.
 
 Pares que não podem repetir — `(jogo_id, plataforma_id)`,
 `(usuario_id, jogo_id)` na biblioteca e `(avaliacao_id, usuario_id)` nas
