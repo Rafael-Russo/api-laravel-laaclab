@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AvaliacaoController;
 use App\Http\Controllers\BibliotecaUsuarioController;
 use App\Http\Controllers\BugometroStatusController;
@@ -42,3 +43,8 @@ Route::apiResource('relatos_bug', RelatoBugController::class)
     ->parameters(['relatos_bug' => 'relato_bug']);
 Route::apiResource('historico_bug', HistoricoBugController::class)
     ->parameters(['historico_bug' => 'historico_bug']);
+
+// Autenticacao. Fica fora de apiResource porque nao e um recurso CRUD: e uma
+// unica acao. O frontend Flask chama este endpoint no servidor, nunca no
+// browser, para que a senha nao passe pelo JavaScript.
+Route::post('login', [AuthController::class, 'login']);
