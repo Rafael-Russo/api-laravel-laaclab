@@ -12,6 +12,7 @@ use App\Http\Controllers\JogoPlataformaController;
 use App\Http\Controllers\MetricaBugController;
 use App\Http\Controllers\PlataformaController;
 use App\Http\Controllers\RelatoBugController;
+use App\Http\Controllers\TopicoController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
 
@@ -46,6 +47,8 @@ Route::apiResource('historico_bug', HistoricoBugController::class)
     ->parameters(['historico_bug' => 'historico_bug']);
 Route::apiResource('categorias', CategoriaController::class)
     ->parameters(['categorias' => 'categoria']);
+Route::apiResource('topicos', TopicoController::class)
+    ->parameters(['topicos' => 'topico']);
 
 // Autenticacao. Fica fora de apiResource porque nao e um recurso CRUD: e uma
 // unica acao. O frontend Flask chama este endpoint no servidor, nunca no
