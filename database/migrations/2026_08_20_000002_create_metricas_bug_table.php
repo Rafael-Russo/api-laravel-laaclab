@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('metricas_bug', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('jogo_id')->constrained('jogos')->cascadeOnDelete();
+            $table->foreignId('jogo_id')->index()->constrained('jogos')->cascadeOnDelete();
             $table->string('tipo', 20);
             $table->string('severidade', 20);
             $table->integer('porcentagem');

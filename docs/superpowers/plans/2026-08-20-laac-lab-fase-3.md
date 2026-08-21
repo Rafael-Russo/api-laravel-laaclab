@@ -1840,7 +1840,7 @@ git commit -m "feat: entidade historico_bug completa e documentacao da Fase 3"
 
 - 14 migrations, 11 models de domínio, 11 controllers de API, 11 factories.
 - 55 rotas sob `/api`, cobertas por 176 testes verdes.
-- As oito FKs desta fase, todas apontando para `jogos`, com teste de cascata cada uma.
+- As quatro FKs desta fase, todas apontando para `jogos`, com teste de cascata cada uma.
 - 4 commits, um por entidade completa:
 
 | Commit | Conteúdo |

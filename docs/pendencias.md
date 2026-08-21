@@ -11,7 +11,7 @@ momento em que apareceram.
 Cada item traz o que é, de onde veio, o custo de deixar como está, e o que
 mudaria se for corrigido.
 
-Atualizado até o fim da **Fase 2** (7 de 18 entidades).
+Atualizado até o fim da **Fase 3** (11 de 18 entidades).
 
 ---
 
@@ -44,6 +44,10 @@ e já incomoda em `avaliacoes` e `curtidas_avaliacoes`.
 **Se corrigir:** trocar `Model::all()` por `Model::paginate()` nos controllers
 muda o formato da resposta de array para objeto com metadados — breaking change
 em todos os `index`. Melhor decidir antes de a API ter consumidores.
+
+A própria previsão deste item se confirmou: a Fase 3 acrescentou exatamente
+`relatos_bug` e `historico_bug`, os fluxos de métricas sem limite superior que
+este item já esperava.
 
 ### A3. `avaliacoes` não tem constraint de unicidade
 
@@ -94,6 +98,11 @@ hoje.
 **Se corrigir:** um único `->render()` em `bootstrap/app.php` cobre os quatro
 pares únicos de uma vez.
 
+A Fase 3 abriu um caminho novo e já alcançável para o mesmo problema:
+`$jogo->bugometroStatus()->create([...])` passa ao largo da validação do
+controller e levanta uma `QueryException` direto do índice único de
+`bugometro_status.jogo_id`.
+
 ### B2. `favorito` não tem cast no pivô
 
 `BibliotecaUsuario` faz cast de `favorito` para boolean, mas
@@ -129,6 +138,41 @@ Decisão explícita da spec §3.5: todos os endpoints são públicos, Sanctum fi
 para fase futura. `Usuario` já estende `Authenticatable` e `config/auth.php` já
 aponta para ele, então a base está pronta. Ver A5 para o custo real.
 
+### B6. FKs das Fases 1 e 2 não têm índice no SQLite
+
+`constrained()` emite apenas a cláusula `FOREIGN KEY`; só o MySQL cria um
+índice de apoio como efeito colateral, o SQLite não. A Fase 3 corrigiu isso nas
+suas próprias FKs (`->index()` antes de `->constrained()`), mas as FKs das
+fases anteriores — `avaliacoes.usuario_id`, `avaliacoes.jogo_id` e as colunas
+de FK das demais tabelas de relacionamento — ficaram como estavam.
+
+**Origem:** revisão da Fase 3, que verificou o schema gerado e não encontrou
+índice em nenhuma dessas colunas.
+**Custo de deixar:** full table scan em toda consulta de relacionamento
+(`$jogo->avaliacoes`, etc.) e em toda cascata de delete sob SQLite, que é o
+banco padrão e o banco de teste deste projeto.
+**Se corrigir:** `->index()` antes de `->constrained()` nas migrations dessas
+fases, seguido de `migrate:fresh`. Não foi feito agora porque essas migrations
+já estão mescladas em `main` — retrofitá-las é uma decisão separada, não uma
+correção pontual da Fase 3.
+
+### B7. `severidade`, `tipo`, `origem` e `status` são enums implícitos
+
+Essas colunas são strings livres, limitadas só por tamanho (`string(20)`,
+`string(50)`, etc.), com vocabulários que já se repetem entre entidades —
+`severidade` usa a mesma lista `['baixa', 'media', 'alta', 'critica']` em
+`metricas_bug` e `relatos_bug`.
+
+**Origem:** revisão da Fase 3.
+**Custo de deixar:** nenhuma validação impede um valor fora do vocabulário
+implícito; o contrato da API não documenta os valores aceitos em lugar nenhum
+além das factories e da prosa do README.
+**Se corrigir:** viraria `Rule::in([...])` nos controllers, ou um enum nativo
+do PHP nos models. Não é uma correção técnica pontual: o DDL de origem declara
+essas colunas como `VARCHAR`, e fidelidade ao DDL é a regra do projeto, então
+apertar o vocabulário é decisão de produto, não daqui. `atividades.tipo`, na
+Fase 5, vai levantar a mesma pergunta pela terceira vez.
+
 ---
 
 ## C. Lacunas de cobertura de teste
@@ -149,6 +193,15 @@ mas nada trava contra regressão.
 - Não há teste direto de `Usuario::avaliacoes()` (só de `Jogo::avaliacoes()`).
 - Nenhum `PUT` de corpo vazio exercita diretamente o ramo "nenhum campo do par"
   de `completaOPar()`.
+- O limite de `porcentagem` só é testado no caminho de `store`; não há um
+  equivalente em `update` para `metricas_bug`.
+- Não há teste de sucesso na fronteira exata de 100 caracteres para
+  `relatos_bug.titulo` — só o caminho de rejeição acima do limite.
+- `historicoBug()` é um `HasMany` com nome no singular, que lido isoladamente
+  num call site parece uma relação para um só registro.
+- Nenhum teste desta fase exercita uma cascata de dois saltos: as quatro
+  tabelas do Bugômetro são todas filhas diretas de `jogos`, então não existe
+  uma para exercitar.
 
 ---
 

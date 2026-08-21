@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('historico_bug', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('jogo_id')->constrained('jogos')->cascadeOnDelete();
+            $table->foreignId('jogo_id')->index()->constrained('jogos')->cascadeOnDelete();
             $table->integer('quantidade_crash');
             $table->integer('quantidade_bug');
             $table->integer('quantidade_fps_drop');

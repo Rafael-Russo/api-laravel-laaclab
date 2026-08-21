@@ -10,9 +10,10 @@ return new class extends Migration
     {
         Schema::create('relatos_bug', function (Blueprint $table) {
             $table->id();
-            // constrained() ja cria o indice em jogo_id, cobrindo o
-            // CREATE INDEX idx_jogo do DDL de origem.
-            $table->foreignId('jogo_id')->constrained('jogos')->cascadeOnDelete();
+            // ->index() explicito: constrained() sozinho emite so a clausula
+            // FOREIGN KEY. O MySQL cria um indice de apoio como efeito
+            // colateral, o SQLite nao — e o SQLite e o banco padrao aqui.
+            $table->foreignId('jogo_id')->index()->constrained('jogos')->cascadeOnDelete();
             $table->string('titulo', 100);
             $table->text('descricao');
             $table->string('severidade', 20);

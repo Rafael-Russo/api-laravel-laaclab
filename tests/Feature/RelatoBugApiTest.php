@@ -49,6 +49,8 @@ class RelatoBugApiTest extends TestCase
             'severidade' => 'baixa',
             'origem' => 'telemetria',
         ])->assertCreated();
+
+        $this->assertDatabaseCount('relatos_bug', 2);
     }
 
     public function test_store_sem_dados_retorna_422(): void
@@ -130,6 +132,21 @@ class RelatoBugApiTest extends TestCase
         $this->assertDatabaseHas('relatos_bug', [
             'id' => $relato->id,
             'severidade' => 'critica',
+        ]);
+    }
+
+    public function test_update_troca_o_jogo(): void
+    {
+        $registro = RelatoBug::factory()->create();
+        $outroJogo = Jogo::factory()->create();
+
+        $this->putJson("/api/relatos_bug/{$registro->id}", ['jogo_id' => $outroJogo->id])
+            ->assertOk()
+            ->assertJsonPath('jogo_id', $outroJogo->id);
+
+        $this->assertDatabaseHas('relatos_bug', [
+            'id' => $registro->id,
+            'jogo_id' => $outroJogo->id,
         ]);
     }
 

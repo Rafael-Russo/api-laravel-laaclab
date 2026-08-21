@@ -64,7 +64,7 @@ class BugometroStatusController extends Controller
                 $obrigatorio, 'integer', 'exists:jogos,id',
                 Rule::unique('bugometro_status', 'jogo_id')->ignore($existente),
             ],
-            'pontuacao' => 'nullable|integer',
+            'pontuacao' => 'nullable|integer|min:0|max:100',
             'status' => 'nullable|string|max:20',
         ];
     }

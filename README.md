@@ -83,7 +83,8 @@ Recursos disponíveis: `usuarios`, `jogos`, `plataformas`, `jogos_plataformas`,
 `biblioteca_usuario`, `avaliacoes`, `curtidas_avaliacoes`, `bugometro_status`,
 `metricas_bug`, `relatos_bug`, `historico_bug`.
 
-Os quatro últimos são relacionamentos e exigem os ids dos registros que ligam.
+`jogos_plataformas`, `biblioteca_usuario`, `avaliacoes` e `curtidas_avaliacoes` são
+relacionamentos e exigem os ids dos registros que ligam.
 Apagar um registro pai apaga os dependentes em cascata: apagar um jogo remove
 seus vínculos de plataforma, suas entradas em bibliotecas e suas avaliações;
 apagar uma avaliação remove suas curtidas.
@@ -93,10 +94,10 @@ Os quatro recursos do Bugômetro (`bugometro_status`, `metricas_bug`,
 ele. `bugometro_status` é o único com relação 1:1: um jogo tem no máximo um
 status, e tentar criar um segundo retorna 422.
 
-`porcentagem` em `metricas_bug` vai de 0 a 100; as quatro contagens de
-`historico_bug` não aceitam valores negativos. Nenhum dos dois limites está no
-DDL de origem — foram acrescentados porque os valores fora deles não têm
-significado.
+`porcentagem` em `metricas_bug` vai de 0 a 100, assim como `pontuacao` em
+`bugometro_status`; as quatro contagens de `historico_bug` não aceitam valores
+negativos. Nenhum desses limites está no DDL de origem — foram acrescentados
+porque os valores fora deles não têm significado.
 
 Nesta entrega o Bugômetro é CRUD puro: nada calcula `pontuacao` ou `status`
 automaticamente a partir das métricas.

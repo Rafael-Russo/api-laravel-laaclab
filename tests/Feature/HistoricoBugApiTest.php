@@ -47,7 +47,8 @@ class HistoricoBugApiTest extends TestCase
 
         $this->getJson("/api/historico_bug/{$registro->id}")
             ->assertOk()
-            ->assertJsonMissingPath('criado_em');
+            ->assertJsonMissingPath('criado_em')
+            ->assertJsonPath('registrado_em', $registro->registrado_em->toJSON());
     }
 
     public function test_o_mesmo_jogo_pode_ter_varios_registros(): void
@@ -61,6 +62,8 @@ class HistoricoBugApiTest extends TestCase
             'quantidade_fps_drop' => 0,
             'quantidade_stutter' => 0,
         ])->assertCreated();
+
+        $this->assertDatabaseCount('historico_bug', 2);
     }
 
     public function test_store_sem_dados_retorna_422(): void
@@ -148,6 +151,21 @@ class HistoricoBugApiTest extends TestCase
         $this->assertDatabaseHas('historico_bug', [
             'id' => $registro->id,
             'quantidade_crash' => 99,
+        ]);
+    }
+
+    public function test_update_troca_o_jogo(): void
+    {
+        $registro = HistoricoBug::factory()->create();
+        $outroJogo = Jogo::factory()->create();
+
+        $this->putJson("/api/historico_bug/{$registro->id}", ['jogo_id' => $outroJogo->id])
+            ->assertOk()
+            ->assertJsonPath('jogo_id', $outroJogo->id);
+
+        $this->assertDatabaseHas('historico_bug', [
+            'id' => $registro->id,
+            'jogo_id' => $outroJogo->id,
         ]);
     }
 

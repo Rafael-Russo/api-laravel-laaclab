@@ -62,6 +62,20 @@ class BugometroStatusApiTest extends TestCase
             ->assertJsonValidationErrors('jogo_id');
     }
 
+    public function test_store_rejeita_pontuacao_fora_da_escala(): void
+    {
+        $jogo = Jogo::factory()->create();
+
+        // A pontuacao do Bugometro e uma escala 0-100, como a propria factory
+        // da entidade ja assume.
+        $this->postJson('/api/bugometro_status', [
+            'jogo_id' => $jogo->id,
+            'pontuacao' => 101,
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('pontuacao');
+    }
+
     public function test_store_rejeita_segundo_status_para_o_mesmo_jogo(): void
     {
         $status = BugometroStatus::factory()->create();

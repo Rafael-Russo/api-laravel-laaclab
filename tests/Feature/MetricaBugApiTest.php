@@ -47,6 +47,8 @@ class MetricaBugApiTest extends TestCase
             'severidade' => 'baixa',
             'porcentagem' => 5,
         ])->assertCreated();
+
+        $this->assertDatabaseCount('metricas_bug', 2);
     }
 
     public function test_store_sem_dados_retorna_422(): void
@@ -140,6 +142,21 @@ class MetricaBugApiTest extends TestCase
         $this->assertDatabaseHas('metricas_bug', [
             'id' => $metrica->id,
             'porcentagem' => 80,
+        ]);
+    }
+
+    public function test_update_troca_o_jogo(): void
+    {
+        $registro = MetricaBug::factory()->create();
+        $outroJogo = Jogo::factory()->create();
+
+        $this->putJson("/api/metricas_bug/{$registro->id}", ['jogo_id' => $outroJogo->id])
+            ->assertOk()
+            ->assertJsonPath('jogo_id', $outroJogo->id);
+
+        $this->assertDatabaseHas('metricas_bug', [
+            'id' => $registro->id,
+            'jogo_id' => $outroJogo->id,
         ]);
     }
 

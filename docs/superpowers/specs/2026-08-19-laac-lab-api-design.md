@@ -268,8 +268,11 @@ Todos os controllers estendem `App\Http\Controllers\Controller`.
 ## 5. Modelo de dados
 
 Tipos abaixo já traduzidos para Schema Builder. Toda FK usa
-`foreignId(...)->constrained('tabela')->cascadeOnDelete()`, que também cria o
-índice — cobrindo os três `CREATE INDEX` do DDL original.
+`foreignId(...)->constrained('tabela')->cascadeOnDelete()`, mas isso emite
+apenas a cláusula `FOREIGN KEY`: o MySQL cria um índice de apoio como efeito
+colateral, o SQLite não. Por isso as colunas de FK declaram `->index()`
+explicitamente, colocado antes de `constrained()` — cobrindo os três
+`CREATE INDEX` do DDL original também no SQLite.
 
 ### Fase 1 — Núcleo
 
