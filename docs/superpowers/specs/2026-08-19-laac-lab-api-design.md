@@ -265,6 +265,14 @@ Route::apiResource('jogos', JogoController::class)
 
 Todos os controllers estendem `App\Http\Controllers\Controller`.
 
+**Exceção: endpoints que não são recursos.** A regra acima governa os 18
+recursos CRUD. `POST /api/login`, trazido pelo frontend Flask fora do escopo
+original deste design, não é um recurso e sim uma única ação — fica fora de
+`apiResource`, sem `->parameters()`, e o nome da URI não deriva de tabela
+alguma. Não emite token: confere as credenciais e devolve o usuário, com a
+sessão ficando do lado do Flask. A seção 3.5 continua valendo por inteiro —
+nenhum endpoint passou a ser protegido.
+
 ## 5. Modelo de dados
 
 Tipos abaixo já traduzidos para Schema Builder. Toda FK usa
