@@ -114,3 +114,65 @@ respostas.
 Em `jogos`, `data_lancamento` deve ser enviada no formato `YYYY-MM-DD`
 (ex.: `2020-12-10`). Outros formatos são rejeitados com 422 para evitar
 ambiguidade entre dia e mês.
+
+### Login
+
+Um endpoint fora do padrão REST, porque não é um recurso e sim uma única ação:
+
+| Verbo | URI | Corpo | Respostas |
+|---|---|---|---|
+| POST | `/api/login` | `email`, `senha` | 200 / 401 / 422 |
+
+Sucesso devolve o objeto do usuário — o mesmo que `GET /api/usuarios/{id}`,
+sem `senha_hash`. **Nenhum token é emitido.** O frontend Flask guarda a sessão
+do lado dele e, a partir daí, a identidade viaja como `usuario_id` nos
+parâmetros das demais chamadas. Os outros endpoints continuam públicos.
+
+E-mail inexistente e senha errada devolvem a **mesma** recusa, palavra por
+palavra — um 401 que distinguisse os dois casos viraria um oráculo de quais
+e-mails estão cadastrados.
+
+### CORS
+
+O frontend roda em outra origem e busca dados do browser, então toda tela
+depende dos cabeçalhos CORS. A lista de origens permitidas vem do ambiente:
+
+```
+CORS_ALLOWED_ORIGINS=http://localhost:5000,http://127.0.0.1:5000
+```
+
+Várias origens separadas por vírgula. O default do config já cobre o servidor
+de desenvolvimento do Flask, então clonar e rodar funciona sem configurar nada;
+em produção, aponte para o domínio real.
+
+A configuração usa lista explícita em vez do curinga `*` que o framework traz
+por padrão: o curinga não registra em lugar nenhum em quem se confia, e é
+incompatível com requisição com credencial — se Sanctum entrar um dia, `*`
+passa a quebrar em vez de apenas ser permissivo.
+
+### Dados de demonstração
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+Dois seeders, nesta ordem — o conteúdo depende do catálogo existir:
+
+- **`CatalogoSeeder`** — mais de 40 jogos reais, todos com capa e gênero
+  preenchidos, ligados a pelo menos 4 plataformas. É o mínimo para o grid da
+  Biblioteca dar para julgar layout e ordenação.
+- **`DemoSeeder`** — o usuário de demonstração, mais alguns usuários de
+  companhia, uma biblioteca de 24 jogos (um a cada quatro marcado como
+  favorito, para a tela ter os dois estados), avaliações espalhadas pelo
+  catálogo e curtidas nelas. Nem todo jogo recebe avaliação, de propósito: a
+  tela de Detalhe precisa saber lidar com o caso vazio.
+
+Credenciais do usuário de demonstração:
+
+```
+e-mail: nikola@laaclab.com.br
+senha:  laaclab123
+```
+
+Semear duas vezes não duplica nada — os seeders usam `updateOrCreate` na
+chave natural de cada registro.

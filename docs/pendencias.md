@@ -11,7 +11,9 @@ momento em que apareceram.
 Cada item traz o que é, de onde veio, o custo de deixar como está, e o que
 mudaria se for corrigido.
 
-Atualizado até o fim da **Fase 3** (11 de 18 entidades).
+Atualizado até o fim da **Fase 3** (11 de 18 entidades), mais o merge do
+frontend Flask — que trouxe login, CORS e seeders, e mudou a premissa de dois
+itens já registrados aqui (**A5** e **B5**).
 
 ---
 
@@ -81,6 +83,13 @@ endpoints. Nada no código atual torna a autenticação mais difícil (os
 controllers são finos e middleware de rota entra direto); o custo está
 concentrado exatamente nesse campo.
 
+**Atualização (merge do frontend Flask):** já existe um `POST /api/login`, mas
+ele **não emite token** — apenas confere e-mail e senha e devolve o usuário. A
+sessão fica no Flask e a identidade continua viajando como `usuario_id` nos
+parâmetros. Ou seja: este item não foi resolvido pela chegada do login; ganhou
+um segundo consumidor. Quando Sanctum entrar, tanto os três endpoints quanto o
+contrato que o frontend já usa mudam juntos.
+
 ---
 
 ## B. Itens técnicos parkados
@@ -137,6 +146,19 @@ local.
 Decisão explícita da spec §3.5: todos os endpoints são públicos, Sanctum fica
 para fase futura. `Usuario` já estende `Authenticatable` e `config/auth.php` já
 aponta para ele, então a base está pronta. Ver A5 para o custo real.
+
+**Atualização (merge do frontend Flask):** existe agora um `POST /api/login`
+que confere credenciais, mas **nenhum endpoint passou a ser protegido** — a
+afirmação acima continua valendo por inteiro. Dois detalhes novos que vão
+importar quando esta pendência for decidida:
+
+- O `AuthController` documenta uma diferença de tempo conhecida entre "e-mail
+  inexistente" e "senha errada" (o primeiro caso sai antes de calcular o hash),
+  aceita porque hoje não é o elo mais fraco. Vira elo relevante no dia em que o
+  resto da API deixar de ser público.
+- `config/cors.php` já foi escrito com `supports_credentials` em `false` e
+  lista explícita de origens, justamente para que ligar Sanctum não exija
+  refazer o CORS — o curinga `*` quebraria com requisição com credencial.
 
 ### B6. FKs das Fases 1 e 2 não têm índice no SQLite
 

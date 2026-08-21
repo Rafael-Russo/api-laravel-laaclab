@@ -8,9 +8,12 @@ use Illuminate\Database\Seeder;
 /**
  * Orquestra os seeders de conteudo.
  *
- * Cada fase da API acrescenta o seu proprio seeder a esta lista, em vez de
- * engordar um arquivo unico: a Fase 3 tera o do Bugometro, a Fase 4 o do
- * forum. A ordem importa — o conteudo do demo depende do catalogo existir.
+ * Uma fase que precise de dados de demonstracao acrescenta o seu proprio
+ * seeder a esta lista, em vez de engordar um arquivo unico. A ordem importa —
+ * o conteudo do demo depende do catalogo existir.
+ *
+ * O Bugometro (Fase 3) entrou sem seeder: as telas que o consomem ainda nao
+ * existem, e semear metrica sem tela para exibi-la seria dado morto.
  */
 class DatabaseSeeder extends Seeder
 {
